@@ -25,7 +25,7 @@ One memorable, actionable takeaway for the player's development (e.g., "Always s
 
 Tone: Constructive, direct, educational, and professional. Avoid fluff.`;
 
-export const analyzeVideoSegment = async (base64Data: string, mimeType: string): Promise<string> => {
+export const analyzeVideoSegment = async (base64Data: string, mimeType: string, focusPrompt?: string): Promise<string> => {
   try {
     const apiKey = process.env.API_KEY;
     if (!apiKey) {
@@ -36,6 +36,11 @@ export const analyzeVideoSegment = async (base64Data: string, mimeType: string):
     
     // Using gemini-3-pro-preview for advanced video reasoning
     const modelId = 'gemini-3-pro-preview';
+
+    // Incorporate the user's specific focus if provided
+    const userInstruction = focusPrompt 
+      ? `Analyze this clip. **Focus specifically on: ${focusPrompt}**. Provide coaching points and corrections related to this request.` 
+      : "Analyze this clip. Focus on coaching points and corrections.";
 
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: modelId,
@@ -48,7 +53,7 @@ export const analyzeVideoSegment = async (base64Data: string, mimeType: string):
             }
           },
           {
-            text: "Analyze this clip. Focus on coaching points and corrections."
+            text: userInstruction
           }
         ]
       },

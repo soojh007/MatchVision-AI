@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [video, setVideo] = useState<VideoFile | null>(null);
   const [analysis, setAnalysis] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [focusPrompt, setFocusPrompt] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,6 +20,7 @@ const App: React.FC = () => {
     // Reset states
     setErrorMsg('');
     setAnalysis('');
+    setFocusPrompt('');
 
     if (!file.type.startsWith('video/')) {
       setErrorMsg('Please upload a valid video file.');
@@ -61,7 +63,7 @@ const App: React.FC = () => {
 
     setAppState(AppState.ANALYZING);
     try {
-      const result = await analyzeVideoSegment(video.base64Data, video.mimeType);
+      const result = await analyzeVideoSegment(video.base64Data, video.mimeType, focusPrompt);
       setAnalysis(result);
       setAppState(AppState.SUCCESS);
     } catch (err: any) {
@@ -130,6 +132,7 @@ const App: React.FC = () => {
                             setAnalysis('');
                             setAppState(AppState.IDLE);
                             setErrorMsg('');
+                            setFocusPrompt('');
                         }}
                         className="text-xs text-red-400 hover:text-red-300 transition-colors"
                     >
@@ -158,6 +161,23 @@ const App: React.FC = () => {
                 onChange={handleFileChange}
               />
             </div>
+
+            {/* Coach Instructions Input */}
+            {video && (
+                <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                        Specific Focus (Optional)
+                    </label>
+                    <input
+                        type="text"
+                        value={focusPrompt}
+                        onChange={(e) => setFocusPrompt(e.target.value)}
+                        placeholder="e.g., Focus on the left back's positioning..."
+                        disabled={appState === AppState.ANALYZING}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all disabled:opacity-50"
+                    />
+                </div>
+            )}
 
             {/* Actions */}
             <div className="flex items-center gap-4">
