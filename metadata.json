@@ -1,0 +1,5 @@
+{
+  "name": "MatchVision AI",
+  "description": "Professional football match analysis powered by Gemini 3 Pro. Upload match segments to get instant tactical breakdowns, key play identification, and strategic insights.",
+  "requestFramePermissions": []
+}
