@@ -16,21 +16,24 @@ const App: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Reset states
+    setErrorMsg('');
+    setAnalysis('');
+
     if (!file.type.startsWith('video/')) {
       setErrorMsg('Please upload a valid video file.');
+      setAppState(AppState.ERROR);
       return;
     }
 
-    // Limit file size to ~25MB for client-side base64 safety in this demo
-    // In production, we'd upload to cloud storage and pass URI
+    // Limit file size to ~25MB for client-side base64 safety
     if (file.size > 25 * 1024 * 1024) {
-      setErrorMsg('Video is too large. Please upload a segment smaller than 25MB.');
+      setErrorMsg('Video is too large (Max 25MB). Please upload a shorter segment.');
+      setAppState(AppState.ERROR);
       return;
     }
 
     setAppState(AppState.UPLOADING);
-    setErrorMsg('');
-    setAnalysis('');
 
     try {
       const base64Data = await fileToBase64(file);
@@ -121,6 +124,7 @@ const App: React.FC = () => {
                             setVideo(null);
                             setAnalysis('');
                             setAppState(AppState.IDLE);
+                            setErrorMsg('');
                         }}
                         className="text-xs text-red-400 hover:text-red-300 transition-colors"
                     >
@@ -161,9 +165,9 @@ const App: React.FC = () => {
                
                <button
                 onClick={startAnalysis}
-                disabled={!video || appState === AppState.ANALYZING || appState === AppState.UPLOADING}
+                disabled={!video || appState === AppState.ANALYZING || appState === AppState.UPLOADING || appState === AppState.ERROR}
                 className={`flex-1 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-[0.98]
-                    ${!video || appState === AppState.ANALYZING 
+                    ${!video || appState === AppState.ANALYZING || appState === AppState.ERROR
                         ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
                         : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 hover:shadow-emerald-500/25'
                     }`}

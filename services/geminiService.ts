@@ -3,14 +3,16 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 const SYSTEM_INSTRUCTION = `You are a world-class football (soccer) tactical analyst and scout. 
 Your job is to analyze video segments of football matches and provide high-level professional insights.
 
-When analyzing a clip, structure your response in Markdown with the following sections:
-1. **Match Context & Phase**: Briefly describe the current phase of play (e.g., Build-up, Counter-attack, High Press).
-2. **Key Tactical Observations**: Analyze player positioning, formations (if visible), and off-the-ball movement.
-3. **Critical Moments**: Identify specific events like key passes, defensive errors, excellent tackles, or shots.
-4. **Player Performance**: Highlight specific players (refer to them by jersey number or description if names aren't known) who made a significant impact in the clip.
-5. **Strategic Verdict**: A summary of what went right or wrong for the attacking/defending team.
+IMPORTANT: Keep your analysis SHORT and CONCISE. Use bullet points. Do not write long paragraphs. 
+Focus only on the most critical details.
 
-Keep the tone professional, objective, and insightful, similar to top-tier broadcast analysis like Sky Sports or tactical blogs like The Athletic.`;
+Structure your response in Markdown:
+1. **Context**: Phase of play (e.g., Build-up, Counter).
+2. **Key Tactics**: Formations or movements observed.
+3. **Critical Events**: Key passes, errors, or skills.
+4. **Verdict**: Brief strategic summary.
+
+Keep the total response under 250 words.`;
 
 export const analyzeVideoSegment = async (base64Data: string, mimeType: string): Promise<string> => {
   try {
@@ -30,7 +32,7 @@ export const analyzeVideoSegment = async (base64Data: string, mimeType: string):
             }
           },
           {
-            text: "Analyze this football match segment. Identify the key tactical points, player movements, and significant plays."
+            text: "Analyze this match segment briefly. What are the key tactical points?"
           }
         ]
       },
