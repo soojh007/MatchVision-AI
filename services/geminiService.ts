@@ -1,24 +1,40 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
-const SYSTEM_INSTRUCTION = `You are a world-class football (soccer) tactical analyst and scout. 
-Your job is to analyze video segments of football matches and provide high-level professional insights.
+// Instruction for coaching-focused output
+const SYSTEM_INSTRUCTION = `You are an elite football coach and tactician. 
+Your goal is to analyze the match footage to **teach** the player/team. 
 
-IMPORTANT: Keep your analysis SHORT and CONCISE. Use bullet points. Do not write long paragraphs. 
-Focus only on the most critical details.
+Do not just describe what happened. Focus on **education and correction**.
+Identify key decisions (good or bad) and explain the "why".
 
-Structure your response in Markdown:
-1. **Context**: Phase of play (e.g., Build-up, Counter).
-2. **Key Tactics**: Formations or movements observed.
-3. **Critical Events**: Key passes, errors, or skills.
-4. **Verdict**: Brief strategic summary.
+Structure your response in Markdown using "###" for section headers:
 
-Keep the total response under 250 words.`;
+### Phase of Play
+(e.g., Build-up, Transition A-D, High Press)
+
+### Analysis
+Break down the play. What technical or tactical actions occurred? Describe the movement and spacing.
+
+### Coaching Point (Correction)
+**This is the most important section.**
+- If a mistake was made: Identify it clearly. Explain **why** it was a mistake (e.g., closed body shape, missed scan, poor spacing). Tell the player **exactly** what they should have done instead.
+- If it was a good play: Explain why it worked so they can repeat it.
+
+### Key Lesson
+One memorable, actionable takeaway for the player's development (e.g., "Always scan your blindside before receiving").
+
+Tone: Constructive, direct, educational, and professional. Avoid fluff.`;
 
 export const analyzeVideoSegment = async (base64Data: string, mimeType: string): Promise<string> => {
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please ensure your environment is configured correctly.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     
-    // We use the pro model for complex video understanding
+    // Using gemini-3-pro-preview for advanced video reasoning
     const modelId = 'gemini-3-pro-preview';
 
     const response: GenerateContentResponse = await ai.models.generateContent({
@@ -32,13 +48,13 @@ export const analyzeVideoSegment = async (base64Data: string, mimeType: string):
             }
           },
           {
-            text: "Analyze this match segment briefly. What are the key tactical points?"
+            text: "Analyze this clip. Focus on coaching points and corrections."
           }
         ]
       },
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.4, // Lower temperature for more analytical/factual output
+        temperature: 0.2, // Low temp for clear, consistent advice
       }
     });
 

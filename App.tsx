@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { UploadIcon, ActivityIcon, AlertCircleIcon, PlayIcon, BrainIcon } from './components/Icons';
 import { AppState, VideoFile } from './types';
 import { fileToBase64, formatFileSize } from './utils/fileUtils';
@@ -26,9 +26,12 @@ const App: React.FC = () => {
       return;
     }
 
-    // Limit file size to ~25MB for client-side base64 safety
-    if (file.size > 25 * 1024 * 1024) {
-      setErrorMsg('Video is too large (Max 25MB). Please upload a shorter segment.');
+    // Limit file size to 15MB.
+    // Explanation: Gemini API inline data limit is 20MB. 
+    // Base64 encoding adds ~33% overhead. 15MB * 1.33 = ~20MB.
+    const maxSize = 15 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setErrorMsg(`Video is too large (Max 15MB). Please upload a shorter segment.`);
       setAppState(AppState.ERROR);
       return;
     }
@@ -48,7 +51,7 @@ const App: React.FC = () => {
       setAppState(AppState.IDLE);
     } catch (err) {
       console.error(err);
-      setErrorMsg('Failed to process video file.');
+      setErrorMsg('Failed to process video file locally.');
       setAppState(AppState.ERROR);
     }
   };
@@ -61,9 +64,11 @@ const App: React.FC = () => {
       const result = await analyzeVideoSegment(video.base64Data, video.mimeType);
       setAnalysis(result);
       setAppState(AppState.SUCCESS);
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('Failed to analyze video. Please try again.');
+    } catch (err: any) {
+      console.error("Analysis failed:", err);
+      // Display the actual error message if available, otherwise generic
+      const message = err.message || 'Failed to analyze video. Please check your API key and connection.';
+      setErrorMsg(message);
       setAppState(AppState.ERROR);
     }
   };
@@ -101,8 +106,8 @@ const App: React.FC = () => {
             
             {/* Header Area */}
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Analyze The Play</h1>
-              <p className="text-slate-400">Upload a match segment to get professional tactical insights instantly.</p>
+              <h1 className="text-3xl font-bold text-white mb-2">Analyze & Improve</h1>
+              <p className="text-slate-400">Upload match footage to identify mistakes, understand the "why", and learn how to fix them.</p>
             </div>
 
             {/* Video Container */}
@@ -141,7 +146,7 @@ const App: React.FC = () => {
                     <UploadIcon className="w-8 h-8 text-emerald-500" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-1">Upload Match Segment</h3>
-                  <p className="text-sm text-slate-500 max-w-xs">Drag and drop or click to browse. MP4, MOV, WebM supported (Max 25MB).</p>
+                  <p className="text-sm text-slate-500 max-w-xs">Drag and drop or click to browse. (Max 15MB)</p>
                 </div>
               )}
               
@@ -158,8 +163,8 @@ const App: React.FC = () => {
             <div className="flex items-center gap-4">
                {appState === AppState.ERROR && (
                    <div className="flex items-center gap-2 text-red-400 bg-red-400/10 px-4 py-3 rounded-lg flex-1 border border-red-400/20">
-                       <AlertCircleIcon className="w-5 h-5" />
-                       <span className="text-sm font-medium">{errorMsg || "An error occurred."}</span>
+                       <AlertCircleIcon className="w-5 h-5 flex-shrink-0" />
+                       <span className="text-sm font-medium break-words leading-tight">{errorMsg || "An error occurred."}</span>
                    </div>
                )}
                
@@ -175,7 +180,7 @@ const App: React.FC = () => {
                    {appState === AppState.ANALYZING ? (
                        <>
                         <div className="w-5 h-5 border-2 border-slate-900/30 border-t-slate-900 rounded-full animate-spin" />
-                        Analyzing Tactics...
+                        Analyzing...
                        </>
                    ) : (
                        <>
@@ -197,8 +202,8 @@ const App: React.FC = () => {
                         <div className="w-16 h-16 bg-slate-800/50 rounded-2xl mx-auto mb-6 flex items-center justify-center">
                             <BrainIcon className="w-8 h-8 text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-semibold text-slate-300 mb-2">AI Tactical Insights</h3>
-                        <p className="text-slate-500">Upload a video and start analysis to see a breakdown of formations, key moments, and player performance here.</p>
+                        <h3 className="text-xl font-semibold text-slate-300 mb-2">AI Coaching Feedback</h3>
+                        <p className="text-slate-500">Upload a clip to receive personalized corrections, detailed teaching points, and actionable advice to elevate your game.</p>
                     </div>
                 </div>
             )}

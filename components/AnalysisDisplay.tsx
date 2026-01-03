@@ -6,43 +6,71 @@ interface AnalysisDisplayProps {
 }
 
 const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ content }) => {
-  // Simple custom renderer for the markdown content to avoid heavy dependencies
-  // We split by lines and look for headers/bullet points
+  
+  // Helper to parse inline bold markdown (e.g., **text**)
+  const parseText = (text: string) => {
+    // Split by the bold syntax, keeping the delimiters to identify parts
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} className="text-emerald-200 font-bold">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return part;
+    });
+  };
+
   const renderContent = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, index) => {
-      // Bold headers (e.g., **Title**)
-      if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+      const trimmed = line.trim();
+      
+      if (!trimmed) return <div key={index} className="h-3" />;
+
+      // Standard Markdown Headers (### Title)
+      if (trimmed.startsWith('### ')) {
         return (
-          <h3 key={index} className="text-xl font-bold text-emerald-400 mt-6 mb-3">
-            {line.replace(/\*\*/g, '')}
+          <h3 key={index} className="text-lg font-bold text-emerald-400 mt-6 mb-3 border-b border-emerald-900/30 pb-2">
+            {trimmed.replace(/^###\s/, '')}
           </h3>
         );
       }
-      // Numbered headers (e.g., 1. Title)
-      if (/^\d+\.\s\*\*.+\*\*$/.test(line.trim())) {
-         const cleanLine = line.replace(/^\d+\.\s/, '').replace(/\*\*/g, '');
-         return (
-            <h3 key={index} className="text-lg font-bold text-emerald-300 mt-6 mb-2 border-b border-emerald-900/50 pb-2">
-              {cleanLine}
-            </h3>
-         )
-      }
-      // Bullet points
-      if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
+
+      // Legacy/Alternative Bold Headers (e.g., **Title**)
+      if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 60) {
         return (
-          <li key={index} className="ml-4 mb-2 text-slate-300 list-disc pl-1">
-            {line.replace(/^[\*\-]\s/, '')}
+          <h4 key={index} className="text-md font-bold text-emerald-300 mt-4 mb-2">
+             {trimmed.replace(/\*\*/g, '')}
+          </h4>
+        );
+      }
+
+      // Bullet points
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        return (
+          <li key={index} className="ml-4 mb-2 text-slate-300 list-disc pl-1 marker:text-emerald-500">
+            {parseText(trimmed.replace(/^[\*\-]\s/, ''))}
           </li>
         );
       }
-      // Normal paragraphs
-      if (line.trim() === '') {
-        return <div key={index} className="h-2" />;
+
+      // Numbered lists (simple detection)
+      if (/^\d+\.\s/.test(trimmed)) {
+          return (
+            <div key={index} className="ml-4 mb-2 text-slate-300 flex gap-2">
+                <span className="font-semibold text-emerald-500/80">{trimmed.match(/^\d+\./)?.[0]}</span>
+                <span>{parseText(trimmed.replace(/^\d+\.\s/, ''))}</span>
+            </div>
+          )
       }
+
+      // Normal paragraphs
       return (
         <p key={index} className="mb-2 text-slate-300 leading-relaxed">
-          {line.replace(/\*\*/g, '')} {/* Strip bold markers from paragraphs for cleaner look */}
+          {parseText(trimmed)}
         </p>
       );
     });
@@ -54,7 +82,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ content }) => {
         <div className="p-2 bg-emerald-500/10 rounded-lg">
           <BrainIcon className="w-6 h-6 text-emerald-400" />
         </div>
-        <h2 className="text-xl font-semibold text-white">Tactical Analysis</h2>
+        <h2 className="text-xl font-semibold text-white">Coach's Analysis</h2>
       </div>
       <div className="prose prose-invert max-w-none">
         {renderContent(content)}
