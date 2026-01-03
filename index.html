@@ -37,8 +37,16 @@
   }
 }
 </script>
+<script>
+  // Polyfill for process.env in browser environments to prevent crashes.
+  // This ensures the app doesn't white-screen if 'process' is undefined.
+  if (typeof process === 'undefined') {
+    window.process = { env: { API_KEY: '' } };
+  }
+</script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
